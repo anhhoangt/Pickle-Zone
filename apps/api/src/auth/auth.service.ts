@@ -1,109 +1,181 @@
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
-import { ForgotPasswordDto, ResetPasswordDto } from './dto/reset-password.dto';
-import { v4 as uuidv4 } from 'uuid';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private usersService: UsersService,
-        private jwtService: JwtService,
-    ) { }
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
-    async validateUser(email: string, pass: string): Promise<any> {
-        const user = await this.usersService.findOneByEmail(email);
-        if (user && (await bcrypt.compare(pass, user.passwordHash))) {
-            const { passwordHash, ...result } = user;
-            return result;
-        }
-        return null;
+  async login(loginDto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: loginDto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    async login(loginDto: LoginDto) {
-        const user = await this.validateUser(loginDto.email, loginDto.password);
-        if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
-        const payload = { email: user.email, sub: user.id, role: user.role };
-        return {
-            access_token: this.jwtService.sign(payload),
-            user,
-        };
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    async signup(signupDto: SignupDto) {
-        const existingUser = await this.usersService.findOneByEmail(signupDto.email);
-        if (existingUser) {
-            throw new ConflictException('User already exists');
-        }
+    const payload = { userId: user.id, email: user.email };
+    const token = this.jwtService.sign(payload);
 
-        const salt = await bcrypt.genSalt();
-        const passwordHash = await bcrypt.hash(signupDto.password, salt);
+    return {
+      access_token: token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
+  }
 
-        const user = await this.usersService.create({
-            email: signupDto.email,
-            passwordHash,
-            firstName: signupDto.firstName,
-            lastName: signupDto.lastName,
-        });
+  async signup(signupDto: SignupDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: signupDto.email },
+    });
 
-        const payload = { email: user.email, sub: user.id, role: user.role };
-        return {
-            access_token: this.jwtService.sign(payload),
-            user,
-        };
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
     }
 
-    async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-        const user = await this.usersService.findOneByEmail(forgotPasswordDto.email);
-        if (!user) {
-            // Don't reveal if user exists
-            return { message: 'If a user with this email exists, a password reset link has been sent.' };
-        }
+    const hashedPassword = await bcrypt.hash(signupDto.password, 10);
 
-        const resetToken = uuidv4();
-        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    const user = await this.prisma.user.create({
+      data: {
+        email: signupDto.email,
+        passwordHash: hashedPassword,
+        firstName: signupDto.firstName,
+        lastName: signupDto.lastName,
+      },
+    });
 
-        await this.usersService.update(user.id, {
-            resetToken,
-            resetTokenExpiry,
-        } as any);
+    const payload = { userId: user.id, email: user.email };
+    const token = this.jwtService.sign(payload);
 
-        // TODO: Send email with reset link
-        console.log(`Reset token for ${user.email}: ${resetToken}`);
-        console.log(`Reset link: http://localhost:5173/reset-password?token=${resetToken}`);
+    return {
+      access_token: token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
+  }
 
-        return { message: 'If a user with this email exists, a password reset link has been sent.' };
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user) {
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetToken,
+          resetTokenExpiry,
+        },
+      });
+
+      console.log(`Password reset token for ${email}: ${resetToken}`);
     }
 
-    async resetPassword(resetPasswordDto: ResetPasswordDto) {
-        // In a real app, we would find by token directly, but Prisma doesn't support finding by optional unique fields easily without raw query or schema change to make it unique.
-        // For now, we'll assume the token is unique enough or we'd need to pass email too.
-        // Actually, let's just find the user who has this token. Since it's not unique in schema, we might have issues if we don't enforce uniqueness.
-        // But for this MVP, let's scan or assume we can find it.
-        // Better approach: The user clicks a link with token.
+    return { message: 'If a user with this email exists, a password reset link has been sent' };
+  }
 
-        // Let's find the first user with this token and valid expiry
-        const users = await this.usersService.findAll(); // Not efficient for production!
-        const user = users.find(u => (u as any).resetToken === resetPasswordDto.token && (u as any).resetTokenExpiry > new Date());
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: {
+          gte: new Date(),
+        },
+      },
+    });
 
-        if (!user) {
-            throw new BadRequestException('Invalid or expired reset token');
-        }
-
-        const salt = await bcrypt.genSalt();
-        const passwordHash = await bcrypt.hash(resetPasswordDto.newPassword, salt);
-
-        await this.usersService.update(user.id, {
-            passwordHash,
-            resetToken: null,
-            resetTokenExpiry: null,
-        } as any);
-
-        return { message: 'Password successfully reset' };
+    if (!user) {
+      throw new BadRequestException('Invalid or expired reset token');
     }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
+
+    return { message: 'Password successfully reset' };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        avatar: true,
+        address: true,
+        phone: true,
+        bio: true,
+        paymentMethods: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return user;
+  }
+
+  async updateProfile(userId: string, data: any) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        address: data.address,
+        phone: data.phone,
+        bio: data.bio,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        avatar: true,
+        address: true,
+        phone: true,
+        bio: true,
+      },
+    });
+
+    return user;
+  }
 }
