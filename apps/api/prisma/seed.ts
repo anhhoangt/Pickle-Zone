@@ -27,7 +27,7 @@ async function main() {
       category: 'Rackets',
       condition: 'NEW',
       stockQuantity: 10,
-      images: ['https://images.unsplash.com/photo-1626246939893-02f81057f6a3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'],
+      images: ['https://placehold.co/500x500/2563eb/white?text=Pro+Carbon+Paddle'],
       sellerId: seller.id,
     },
     {
@@ -37,7 +37,7 @@ async function main() {
       category: 'Balls',
       condition: 'NEW',
       stockQuantity: 100,
-      images: ['https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'],
+      images: ['https://placehold.co/500x500/16a34a/white?text=Pickleballs+3-Pack'],
       sellerId: seller.id,
     },
     {
@@ -47,7 +47,7 @@ async function main() {
       category: 'Rackets',
       condition: 'USED',
       stockQuantity: 1,
-      images: ['https://plus.unsplash.com/premium_photo-1677171749302-e77091963571?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'],
+      images: ['https://placehold.co/500x500/a16207/white?text=Vintage+Paddle'],
       sellerId: seller.id,
     },
   ];

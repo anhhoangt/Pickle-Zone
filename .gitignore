@@ -39,3 +39,6 @@ apps/api/dist
 # Prisma
 *.db
 *.db-journal
+
+# Logs
+*.log

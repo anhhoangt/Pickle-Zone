@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -14,6 +15,11 @@ model User {
   firstName     String    @map("first_name")
   lastName      String    @map("last_name")
   role          String    @default("BUYER") // BUYER, SELLER, ADMIN
+  avatar        String?
+  address       String?
+  paymentMethods String?  @map("payment_methods")
+  resetToken    String?   @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

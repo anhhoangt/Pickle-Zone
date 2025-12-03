@@ -1,39 +1,60 @@
-import { useState } from 'react'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { DashboardPage } from './pages/DashboardPage';
+import { MarketplacePage } from './pages/MarketplacePage';
+import { HomePage } from './pages/HomePage';
+import { DashboardLayout } from './components/DashboardLayout';
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  return <DashboardLayout>{children}</DashboardLayout>;
+};
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="mb-8">
-        <img src="/logo.svg" alt="Pickleball Marketplace Logo" className="w-32 h-32 drop-shadow-xl" />
-      </div>
-
-      <h1 className="text-4xl font-bold text-primary mb-2">Pickleball Marketplace</h1>
-      <p className="text-muted-foreground mb-8 text-lg">The Enterprise Platform for Pickleball Enthusiasts</p>
-
-      <div className="card bg-card text-card-foreground p-8 rounded-xl shadow-lg border border-border max-w-md w-full text-center">
-        <p className="mb-6 text-left">
-          Welcome to the future of pickleball trading. Buy, sell, and trade equipment with enterprise-grade security and speed.
-        </p>
-
-        <div className="flex gap-4 justify-center">
-          <button
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors"
-            onClick={() => setCount((count) => count + 1)}
-          >
-            Explore Products ({count})
-          </button>
-          <button
-            className="bg-secondary text-secondary-foreground px-6 py-2 rounded-md font-medium hover:bg-secondary/90 transition-colors"
-          >
-            Sell Item
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/marketplace"
+            element={
+              <ProtectedRoute>
+                <MarketplacePage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
