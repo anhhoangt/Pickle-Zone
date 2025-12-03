@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="paddleGradient" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Paddle Handle -->
+  <rect x="90" y="130" width="20" height="60" rx="5" fill="#1E293B" />
+
+  <!-- Paddle Face -->
+  <rect x="50" y="30" width="100" height="110" rx="20" fill="url(#paddleGradient)" />
+
+  <!-- Ball (The "P" dot or just a ball) -->
+  <circle cx="130" cy="50" r="15" fill="#84CC16" stroke="#FFFFFF" stroke-width="2" />
+
+  <!-- Stylized P -->
+  <path d="M85 60 V110 M85 60 H105 A 25 25 0 0 1 105 110 H85" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
