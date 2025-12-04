@@ -92,7 +92,7 @@ You'll see progress messages in the terminal showing each step.
 ### Products by Category
 
 - **Paddles**: 4 products
-- **Balls**: 2 products  
+- **Balls**: 2 products
 - **Shoes**: 1 product
 - **Bags**: 1 product
 - **Apparel**: 1 product
