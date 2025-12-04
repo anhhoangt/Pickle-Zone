@@ -1,52 +1,87 @@
+import { useEffect, useState } from 'react';
 import { ProductCard } from '../components/ProductCard';
+import { ProductFilters, type FilterState } from '../components/ProductFilters';
+import { api } from '../lib/api';
 
-// Mock data for now
-const MOCK_PRODUCTS = [
-  {
-    id: '1',
-    title: 'Pro Pickleball Paddle',
-    price: 89.99,
-    category: 'Paddles',
-    condition: 'NEW' as const,
-    images: [
-      'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      'https://images.unsplash.com/photo-1626224583764-8478abf7263f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-    ]
-  },
-  {
-    id: '2',
-    title: 'Outdoor Pickleballs (Pack of 3)',
-    price: 12.99,
-    category: 'Balls',
-    condition: 'NEW' as const,
-    images: [
-      'https://images.unsplash.com/photo-1626224583764-8478abf7263f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-    ]
-  },
-  {
-    id: '3',
-    title: 'Used Tournament Net',
-    price: 45.00,
-    category: 'Accessories',
-    condition: 'USED' as const,
-    images: [
-      'https://images.unsplash.com/photo-1626224583764-8478abf7263f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-    ]
-  },
-  {
-    id: '4',
-    title: 'Performance Court Shoes',
-    price: 75.50,
-    category: 'Footwear',
-    condition: 'GOOD' as const,
-    images: [
-      'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'
-    ]
-  }
-];
+interface Product {
+  id: string;
+  title: string;
+  price: number;
+  category: string;
+  condition: 'NEW' | 'USED' | 'GOOD';
+  images: string[];
+  seller: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
 
 export const HomePage = () => {
-  console.log('HomePage rendering, products:', MOCK_PRODUCTS.length);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    category: '',
+    condition: '',
+    minPrice: '',
+    maxPrice: '',
+  });
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (filters.search) params.append('search', filters.search);
+      if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+      if (filters.condition && filters.condition !== 'all') params.append('condition', filters.condition);
+      if (filters.minPrice) params.append('minPrice', filters.minPrice);
+      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+
+      const queryString = params.toString();
+      const url = queryString ? `/products?${queryString}` : '/products';
+
+      const response = await api.get(url);
+      const mappedProducts = response.data.map((p: any) => ({
+        ...p,
+        images: p.images.map((img: any) => img.url),
+      }));
+      setProducts(mappedProducts);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleProductUpdate = () => {
+    fetchProducts();
+  };
+
+  const handleSearch = () => {
+    fetchProducts();
+  };
+
+  const handleReset = () => {
+    setFilters({
+      search: '',
+      category: '',
+      condition: '',
+      minPrice: '',
+      maxPrice: '',
+    });
+    // Fetch products with reset filters
+    setTimeout(() => {
+      fetchProducts();
+    }, 0);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -54,16 +89,34 @@ export const HomePage = () => {
         <p className="text-gray-600">Discover the best gear from our community.</p>
       </div>
 
-      {MOCK_PRODUCTS.length === 0 ? (
+      <ProductFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        onSearch={handleSearch}
+        onReset={handleReset}
+      />
+
+      {isLoading ? (
+        <div className="text-center py-12">Loading...</div>
+      ) : products.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          No products found.
+          No products found. Try adjusting your search filters.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {MOCK_PRODUCTS.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <>
+          <div className="mb-4 text-sm text-gray-600">
+            Showing {products.length} {products.length === 1 ? 'product' : 'products'}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onUpdate={handleProductUpdate}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

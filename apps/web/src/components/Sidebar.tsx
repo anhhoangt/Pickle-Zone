@@ -3,6 +3,7 @@ import { User, LayoutDashboard, LogOut, Home } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { AnimatedLogo } from './AnimatedLogo';
+import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -52,12 +53,15 @@ export const Sidebar = ({ isCollapsed }: SidebarProps) => {
               </div>
             </Link>
 
-          </>
+            </>
         )}
       </nav>
 
       {isAuthenticated && (
-        <div className="pt-4 border-t border-green-200">
+        <div className="pt-4 border-t border-green-200 space-y-2">
+          <div className={`flex ${isCollapsed ? 'justify-center' : 'justify-start'} mb-2`}>
+            <ThemeToggle />
+          </div>
           <Button
             variant="ghost"
             className={`w-full ${isCollapsed ? 'justify-center px-2' : 'justify-start'} text-red-600 hover:text-red-700 hover:bg-red-50`}
@@ -70,7 +74,10 @@ export const Sidebar = ({ isCollapsed }: SidebarProps) => {
       )}
 
       {!isAuthenticated && (
-        <div className="pt-4 border-t border-green-200">
+        <div className="pt-4 border-t border-green-200 space-y-2">
+          <div className={`flex ${isCollapsed ? 'justify-center' : 'justify-start'} mb-2`}>
+            <ThemeToggle />
+          </div>
           <Link to="/login">
             <Button variant="default" className="w-full">
               {isCollapsed ? 'In' : 'Login'}
@@ -78,7 +85,7 @@ export const Sidebar = ({ isCollapsed }: SidebarProps) => {
           </Link>
           {!isCollapsed && (
             <Link to="/signup">
-              <Button variant="outline" className="w-full mt-6">
+              <Button variant="outline" className="w-full mt-2">
                 Sign Up
               </Button>
             </Link>

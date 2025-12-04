@@ -17,7 +17,7 @@ export const LoginPage = () => {
     try {
       const response = await api.post('/auth/login', { email, password });
       login(response.data.access_token, response.data.user);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError('Invalid credentials');
     }

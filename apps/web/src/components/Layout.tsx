@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
-import { Menu, X, ShoppingCart } from 'lucide-react';
+import { Menu, X, ShoppingCart, Plus } from 'lucide-react';
 import { Button } from './ui/button';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ProductFormModal } from './ProductFormModal';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -11,10 +11,21 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const { isAuthenticated } = useAuth();
+    const [isSellModalOpen, setIsSellModalOpen] = useState(false);
+    const { isAuthenticated, user } = useAuth();
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
+    };
+
+    const handleSellItem = () => {
+        setIsSellModalOpen(true);
+    };
+
+    const handleProductCreated = () => {
+        // Ideally we would refresh the product list here
+        // For now, we can just reload the page or let the user navigate
+        window.location.reload();
     };
 
     return (
@@ -34,18 +45,22 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </Button>
 
                     <div className="flex items-center space-x-4">
+                        {isAuthenticated && (
+                            <Button onClick={handleSellItem} className="gap-2">
+                                <Plus size={16} />
+                                Sell Item
+                            </Button>
+                        )}
+
                         <Button variant="ghost" size="icon">
                             <ShoppingCart className="h-5 w-5" />
                         </Button>
 
-                        {!isAuthenticated && (
+                        {isAuthenticated && user && (
                             <div className="flex items-center">
-                                <Button asChild variant="ghost" className="px-6">
-                                    <Link to="/login">Login</Link>
-                                </Button>
-                                <Button asChild className="ml-8 px-6">
-                                    <Link to="/signup">Sign Up</Link>
-                                </Button>
+                                <span className="text-sm font-medium mr-4">
+                                    {user.firstName} {user.lastName}
+                                </span>
                             </div>
                         )}
                     </div>
@@ -56,6 +71,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {children}
                 </main>
             </div>
+
+            <ProductFormModal
+                isOpen={isSellModalOpen}
+                onClose={() => setIsSellModalOpen(false)}
+                onSuccess={handleProductCreated}
+            />
         </div>
     );
 };
