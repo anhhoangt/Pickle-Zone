@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { User, LayoutDashboard, LogOut, Home } from 'lucide-react';
+import { User, LayoutDashboard, LogOut, Home, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { AnimatedLogo } from './AnimatedLogo';
@@ -46,6 +46,13 @@ export const Sidebar = ({ isCollapsed }: SidebarProps) => {
               </div>
             </Link>
 
+            <Link to="/my-listings">
+              <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'} p-3 rounded-lg hover:bg-green-100 transition-colors ${isActive('/my-listings')}`}>
+                <Package size={20} />
+                {!isCollapsed && <span>My Listings</span>}
+              </div>
+            </Link>
+
             <Link to="/profile">
               <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'} p-3 rounded-lg hover:bg-green-100 transition-colors ${isActive('/profile')}`}>
                 <User size={20} />
@@ -53,7 +60,7 @@ export const Sidebar = ({ isCollapsed }: SidebarProps) => {
               </div>
             </Link>
 
-            </>
+          </>
         )}
       </nav>
 

@@ -92,6 +92,33 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.title.trim()) {
+      alert('Title is required');
+      return;
+    }
+
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      alert('Please enter a valid price');
+      return;
+    }
+
+    if (!formData.category) {
+      alert('Please select a category');
+      return;
+    }
+
+    if (!formData.condition) {
+      alert('Please select a condition');
+      return;
+    }
+
+    if (!formData.images || !formData.images.trim()) {
+      alert('At least one image is required');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -113,7 +140,7 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
       onClose();
     } catch (error) {
       console.error('Failed to save product:', error);
-      // Handle error (show toast, etc.)
+      alert('Failed to save product. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -127,13 +154,16 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">
+              Title <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="title"
               name="title"
               value={formData.title}
               onChange={handleChange}
               required
+              placeholder="Enter product title"
             />
           </div>
           <div className="space-y-2">
@@ -143,11 +173,14 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
               name="description"
               value={formData.description}
               onChange={handleChange}
+              placeholder="Describe your product (optional)"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($)</Label>
+              <Label htmlFor="price">
+                Price ($) <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="price"
                 name="price"
@@ -156,6 +189,7 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
                 value={formData.price}
                 onChange={handleChange}
                 required
+                placeholder="0.00"
               />
             </div>
             <div className="space-y-2">
@@ -167,12 +201,15 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
                 value={formData.stockQuantity}
                 onChange={handleChange}
                 required
+                placeholder="1"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">
+                Category <span className="text-red-500">*</span>
+              </Label>
               <Select
                 value={formData.category}
                 onValueChange={(value: string) => handleSelectChange('category', value)}
@@ -183,14 +220,18 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
                 <SelectContent>
                   <SelectItem value="Paddles">Paddles</SelectItem>
                   <SelectItem value="Balls">Balls</SelectItem>
-                  <SelectItem value="Accessories">Accessories</SelectItem>
-                  <SelectItem value="Footwear">Footwear</SelectItem>
+                  <SelectItem value="Bags">Bags</SelectItem>
                   <SelectItem value="Apparel">Apparel</SelectItem>
+                  <SelectItem value="Shoes">Shoes</SelectItem>
+                  <SelectItem value="Accessories">Accessories</SelectItem>
+                  <SelectItem value="Court Equipment">Court Equipment</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="condition">Condition</Label>
+              <Label htmlFor="condition">
+                Condition <span className="text-red-500">*</span>
+              </Label>
               <Select
                 value={formData.condition}
                 onValueChange={(value: string) => handleSelectChange('condition', value)}
@@ -207,7 +248,9 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="images">Images</Label>
+            <Label htmlFor="images">
+              Images <span className="text-red-500">*</span>
+            </Label>
             <div className="flex items-center gap-4">
               <Input
                 id="images"
@@ -241,7 +284,7 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: Produc
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                          <path d="M18 6 6 18" /><path d="m6 6 12 12" />
                         </svg>
                       </button>
                     </div>
