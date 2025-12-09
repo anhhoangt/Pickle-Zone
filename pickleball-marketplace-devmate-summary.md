@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Pickleball Marketplace (a.k.a. PickleZone) is an enterprise-oriented platform for buying, selling, and managing pickleball equipment. It delivers a responsive React single-page application backed by a NestJS API with Prisma ORM and PostgreSQL. The system emphasizes modular domain boundaries (auth, users, products) and lays groundwork for marketplace capabilities such as order management, reviews, and inventory tracking.......
+Pickleball Marketplace (a.k.a. PickleZone) is an enterprise-oriented platform for buying, selling, and managing pickleball equipment. It delivers a responsive React single-page application backed by a NestJS API with Prisma ORM and PostgreSQL. The system emphasizes modular domain boundaries (auth, users, products) and lays groundwork for marketplace capabilities such as order management, reviews, and inventory tracking........
 
 **Key Capabilities**
 - User authentication, profile management, password recovery
